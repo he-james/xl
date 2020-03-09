@@ -70,7 +70,7 @@ For Each c In allcolors
             Set newsheetname = ActiveCell.Offset(0, 1)
             Set newcolor = wb.Worksheets.Add(Before:=ip)
             newcolor.Name = newsheetname.Value
-            
+
             Sheets("DeathStarParts").Select
             Selection.AutoFilter
             ActiveSheet.Range("$A$1:$L$592").AutoFilter Field:=6, Criteria1:=c.Value
@@ -78,7 +78,7 @@ For Each c In allcolors
             Selection.Copy
             Sheets(newsheetname.Value).Select
             ActiveSheet.Paste
-            
+
             colors.Select
         End If
     Next cc
