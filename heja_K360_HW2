@@ -1,0 +1,97 @@
+Sub DeathStar()
+' James He, heja@iu.edu, 3/1/2020 4:17 pm (I'm sorry)
+
+' Some useful generic variable declarations
+Dim wb As Workbook
+Set wb = ActiveWorkbook
+
+Dim ip As Worksheet
+Set ip = wb.Sheets("inventory_parts")
+
+Dim colors As Worksheet
+Set colors = wb.Sheets("colors")
+
+Dim dscolors As Range
+Dim allcolors As Range
+
+' 2.1. Creating "DeathStarParts"
+
+Dim dsp As Worksheet
+Set dsp = wb.Worksheets.Add(Before:=ip)
+dsp.Name = "DeathStarParts"
+
+' 2.2 and 3. Filtering ip and populating dsp
+ip.Select
+Range("A1:L580252").Select
+Selection.AutoFilter
+ip.Range("$A$1:$L$580252").AutoFilter Field:=9, Criteria1:= _
+    "75159-1"
+Range("A1:L580252").Select
+Selection.Copy
+dsp.Paste
+
+' 1.1. Removing color_id duplicates from Death Star set
+Selection.AutoFilter
+Selection.ClearContents
+Range("A1").Select
+dsp.Select
+Selection.Copy
+ip.Select
+ActiveSheet.Paste
+ActiveSheet.Range("$A$1:$L$592").RemoveDuplicates Columns:=6, Header:=xlYes
+
+' 1.2. Alphabetize sheet "colors"
+Sheets("colors").Select
+Selection.AutoFilter
+ActiveWorkbook.Worksheets("colors").AutoFilter.Sort.SortFields.Clear
+ActiveWorkbook.Worksheets("colors").AutoFilter.Sort.SortFields.Add2 Key:= _
+    Range("B1:B136"), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption _
+    :=xlSortNormal
+With ActiveWorkbook.Worksheets("colors").AutoFilter.Sort
+    .Header = xlYes
+    .MatchCase = False
+    .Orientation = xlTopToBottom
+    .SortMethod = xlPinYin
+    .Apply
+End With
+
+' 1.3. Create new sheets in alphabetical order
+'      Also populates each sheet with its respective data
+Set dscolors = ip.Range("F2:F29")
+Set allcolors = colors.Range("A2:A136")
+
+Dim newcolor As Worksheet
+Dim newsheetname As Range
+
+For Each c In allcolors
+    For Each cc In dscolors
+        If c.Value = cc.Value Then
+            c.Select
+            Set newsheetname = ActiveCell.Offset(0, 1)
+            Set newcolor = wb.Worksheets.Add(Before:=ip)
+            newcolor.Name = newsheetname.Value
+            
+            Sheets("DeathStarParts").Select
+            Selection.AutoFilter
+            ActiveSheet.Range("$A$1:$L$592").AutoFilter Field:=6, Criteria1:=c.Value
+            Range("A1:L592").Select
+            Selection.Copy
+            Sheets(newsheetname.Value).Select
+            ActiveSheet.Paste
+            
+            colors.Select
+        End If
+    Next cc
+Next c
+
+Sheets("DeathStarParts").Select
+Selection.AutoFilter
+
+' 6. Deleting the other sheets
+Application.DisplayAlerts = False
+Sheets(Array("inventory_parts", "colors", "inventories", "parts", "part_categories" _
+    , "sets", "themes")).Select
+ActiveWindow.SelectedSheets.Delete
+Application.DisplayAlerts = True
+
+End Sub
